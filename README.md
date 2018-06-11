@@ -2,21 +2,35 @@
 
 Simulates a data stream with checksums that apply to each item in the stream.
 
+If you would like to know more, check out the [problem statement](docs/chain_hash.md).
+
 
 ## Run
 
 * Install Java (Tested in Java 10)
 * Install [leiningen](https://leiningen.org/)
 
-### "Server" cli options
+### Server operations
 #### Generate hash list
 ```bash
 lein run gen-hashes -f <filename>
 ```
 Generates a file `<filename>.shashes` that contains the text hashes of each block of data.
 
-### "Client" cli options.
-#### "Stream" a hashed file
+#### Return the number of pieces
+
+```bash
+lein run count-pieces -f <filename>
+```
+
+Returns the number of pieces in the given file.
+
+#### Return piece `n`
+
+Implemented as a call from `chain_hash.client` to `chain_hash.server/fetch-piece` The intention here is to show the seam where a call to an intermediary api or web service would go
+
+### Client operations
+#### Stream a hashed file (Simulation)
 ```bash
 lein run fetch -f <filename> -c <first-hash>
 ```
@@ -46,14 +60,6 @@ lein run fetch-piece -f <filename> -p <number> -c <hash>
 Fetches piece `n` from the named file. The provided checksum should be the
 checksum provided by piece `n-1` (or the provided initial hash if n == 1)
 
-#### Return the number of pieces
-
-```bash
-lein run count-pieces -f <filename>
-```
-
-Returns the number of pieces in the given file.
-
 ## Test
 
 ```bash
@@ -62,7 +68,7 @@ lein test
 
 ## Notes
 
-* Startup time is very slow, thanks to a combination of the JVM and clojure. 
+* Startup time can be very slow, thanks to a combination of the JVM and leiningen spin-up. 
     * Most of this can be gotten-rid-of using `java -jar target/uberjar/<project>-<version>-STANDALONE.jar` after a `lein uberjar`
     * GrallVM is also promising, but their static linker doesn't work on DARWIN yet. :(
 * Future enhancements would add better error checking and filepath

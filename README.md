@@ -2,7 +2,7 @@
 
 Simulates a data stream with checksums that apply to each item in the stream.
 
-If you would like to know more, check out the [problem statement](docs/chain_hash.md).
+If you would like to know more, check out the [problem statement](doc/chain_hash.md).
 
 
 ## Run

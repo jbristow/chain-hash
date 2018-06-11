@@ -6,7 +6,7 @@ Unfortunately, this means that the video will only begin playing after the *enti
 
 Instead of computing a hash of the entire file, the web site breaks the file into 1KB blocks (1024 bytes). It computes the hash of the last block and appends the value to the second to last block. It then computes the hash of this augmented second to last block and appends the resulting hash to the third block from the end. This process continues from the last block to the first as in the following diagram: 
 
-![img](file:////Users/jb186100/Library/Group%20Containers/UBF8T346G9.Office/TemporaryItems/msohtmlclip/clip_image001.jpg)
+![img](./doc/Chained Hashing.fld/image001.jpg)
 
 The final hash value *h*0 – a hash of the first block with its appended hash – is distributed to users via the authenticated channel as above. 
 

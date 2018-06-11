@@ -1,6 +1,8 @@
 (ns chain-hash.file
-  (:import (java.io File RandomAccessFile)
-           (java.nio.file Files Paths StandardOpenOption)))
+  (:import (java.nio ByteBuffer)
+           (java.nio.channels SeekableByteChannel)
+           (java.nio.file Files LinkOption OpenOption Paths StandardOpenOption))
+  (:gen-class))
 
 (defn path
   "Hides the ugliness of the java interop for Paths/get a little."
@@ -12,25 +14,26 @@
   [filename]
   (Files/size (path filename)))
 
-(defn random-access-file
+(defn byte-channel
   "Simple clojure wrapper for creating a readonly RandomAccessFile object from
    a filename."
   [filename]
   (if (Files/isReadable (path filename))
-    (RandomAccessFile. (File. filename) "r")
+    (Files/newByteChannel (path filename) (into-array OpenOption [StandardOpenOption/READ]))
     (throw (ex-info "File not readable for random access." {:filename filename}))))
 
 (defn read-byte-array
   "Read a byte array of a given size starting at a given position.
    Operates on an already open RandomAccessFile object."
-  [^RandomAccessFile raf position size]
-  (let [bs (byte-array size)]
-    (.seek raf position)
-    (.read raf bs)
-    bs))
+  [^SeekableByteChannel channel position size]
+  (let [bbuff (ByteBuffer/allocate size)]
+    (.position channel position)
+    (.read channel bbuff)
+    (.array bbuff)))
 
 (defn append-to [filename data]
-  (if (Files/exists (path filename) (make-array []))
-    (throw (ex-info "Output file already exists." {:filename filename}))
-    (with-open [wrtr (Files/newOutputStream filename StandardOpenOption/APPEND)]
-      (.write wrtr data))))
+  (with-open [wrtr (Files/newOutputStream (path filename) (into-array OpenOption [StandardOpenOption/CREATE StandardOpenOption/APPEND]))]
+    (.write wrtr data)))
+
+(defn exists? [filename]
+  (Files/exists (path filename) (into-array LinkOption [])))

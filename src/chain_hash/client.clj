@@ -1,7 +1,9 @@
 (ns chain-hash.client
-  (:require [chain-hash.server :as server]
+  (:require [chain-hash.file :as f]
+            [chain-hash.server :as server]
             [chain-hash.util :as util])
-  (:import (java.util Arrays)))
+  (:import (java.util Arrays))
+  (:gen-class))
 
 (defn un-merge-data [arr size]
   (let [len-a size
@@ -16,11 +18,18 @@
   (Arrays/equals (util/sha256 piece) (util/unhexify checksum)))
 
 (defn fetch-piece [file piece size]
-  (if (< 0 piece (server/count-pieces file size))
-    (util/base64-encode (server/fetch-piece file piece size))
-    (throw (ex-info "Illegal piece requested." {:piece piece :filename file}))))
+  (let [max-piece (server/count-pieces file size)]
+    (if (< 0 piece max-piece)
+      (util/base64-encode (server/fetch-piece file piece size))
+      (throw (ex-info "Illegal piece requested." {:requested piece
+                                                  :acceptable-range [0 max-piece]
+                                                  :filename file})))))
 
-(defn fetch [file checksum size output-handler]
+(defn fetch
+  "Fetch all pieces of a file from the server.
+
+  For now, imagine that server/fetch-piece is a call to a REST api."
+  [file checksum size output-handler]
 
   (loop [n 1
          curr-checksum checksum]
@@ -34,8 +43,14 @@
               (output-handler curr-piece)))
         (throw (ex-info "Checksum error" {:piece n
                                           :invalid-checksum curr-checksum
-                                          :actual (util/hexify (util/sha256 curr-piece))}))))))
+                                          :actual (util/hexify
+                                                   (util/sha256 curr-piece))}))))))
 (defn count-pieces
   "Simulate the client calling the server to ask for the number of pieces."
   [filename size]
   (server/count-pieces filename size))
+
+(defn file-append-handler
+  "Default file-handler that just appends data to a given file."
+  [filename]
+  (fn [data] (f/append-to filename data)))

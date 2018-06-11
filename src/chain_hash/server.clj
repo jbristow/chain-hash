@@ -3,7 +3,8 @@
             [chain-hash.util :as util]
             [clojure.java.io :as io])
   (:import (java.nio.charset StandardCharsets)
-           (java.nio.file Files)))
+           (java.nio.file Files))
+  (:gen-class))
 
 (def hash-extension ".shashes")
 
@@ -30,7 +31,7 @@
 (defn fetch-piece [file piece size]
   (let [hashv (util/unhexify (fetch-hash file piece))
         bytecount (f/file-size file)
-        data (f/read-byte-array (f/random-access-file file)
+        data (f/read-byte-array (f/byte-channel file)
                                 (* size (dec piece))
                                 (if (> (* size piece) bytecount)
                                   (mod bytecount size) size))]
@@ -51,8 +52,8 @@
   "Lazy-load binary data chunks from the end back to the front of the file."
   [filename size]
   (let [positions (calculate-data-chunk-info filename size)
-        raf (f/random-access-file filename)]
-    (map (fn [[p s]] (f/read-byte-array raf p s)) (reverse positions))))
+        channel (f/byte-channel filename)]
+    (map (fn [[p s]] (f/read-byte-array channel p s)) (reverse positions))))
 
 (defn hash-sequence
   "Takes a sequence of binary data and returns a list of the resulting

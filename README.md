@@ -61,6 +61,8 @@ lein test
 ## Notes
 
 * Startup time is very slow, thanks to a combination of the JVM and clojure. 
+    * Most of this can be gotten-rid-of using `java -jar target/uberjar/<project>-<version>-STANDALONE.jar` after a `lein uberjar`
+    * GrallVM is also promising, but their static linker doesn't work on DARWIN yet. :(
 * Future enhancements would add better error checking and filepath
   obfuscation/checking to avoid arbitrary file loading.
 * This would probably be more handy if there were an actual web service sending these files.

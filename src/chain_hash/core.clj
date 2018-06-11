@@ -29,14 +29,15 @@
   "Validate that the listed options all exist. Elides a nested cond and a bunch
    of unnecessarily repeated code."
   [option olist body]
-  (when (seq olist)
+  (if (seq olist)
     (let [[curr-opt & r-opts] olist]
       (list 'if
             (list 'contains? option curr-opt)
             (if (seq r-opts)
               (cons 'chain-hash.core/validate-has-option (list option (apply vector r-opts) body))
               body)
-            (list 'throw (list 'missing-required-argument curr-opt))))))
+            (list 'throw (list 'missing-required-argument curr-opt))))
+    body))
 
 (defn -main
   "The main entry point for the cli"
@@ -80,8 +81,6 @@
             (exit 1)))
       (catch Exception e
         (do (println "Exception:" (.getMessage e))
-            (println (if (ex-data e)
-                       (ex-data e)
-                       e)))))
+            (println (or (ex-data e) e)))))
 
     (exit 0)))

@@ -9,16 +9,22 @@
   [filename]
   (Paths/get filename (into-array [""])))
 
+(defn exists? [filename]
+  (Files/exists (path filename) (into-array LinkOption [])))
+
 (defn file-size
   "Returns the total size of a file in bytes."
   [filename]
-  (Files/size (path filename)))
+  (if (exists? filename)
+    (Files/size (path filename))
+    (throw (ex-info "Cannot get the size of a nonexistent file" {:filename filename}))))
 
 (defn byte-channel
   "Simple clojure wrapper for creating a readonly RandomAccessFile object from
    a filename."
   [filename]
-  (if (Files/isReadable (path filename))
+  (if (and (exists? filename)
+           (Files/isReadable (path filename)))
     (Files/newByteChannel (path filename) (into-array OpenOption [StandardOpenOption/READ]))
     (throw (ex-info "File not readable for random access." {:filename filename}))))
 
@@ -34,6 +40,3 @@
 (defn append-to [filename data]
   (with-open [wrtr (Files/newOutputStream (path filename) (into-array OpenOption [StandardOpenOption/CREATE StandardOpenOption/APPEND]))]
     (.write wrtr data)))
-
-(defn exists? [filename]
-  (Files/exists (path filename) (into-array LinkOption [])))

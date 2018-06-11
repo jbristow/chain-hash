@@ -2,7 +2,8 @@
   :description "craft-demo showing off sequential hashing"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0"]]
+  :dependencies [[org.clojure/clojure "1.9.0"]
+                 [org.clojure/tools.cli "0.3.7"]]
   :main ^:skip-aot chain-hash.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}

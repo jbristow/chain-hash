@@ -29,6 +29,8 @@
   (let [md (MessageDigest/getInstance "SHA-256")]
     (.digest md bs)))
 
-(defn base64-encode [bs]
+(defn base64-encode
+  "Simple wrapper to easily convert byte-arrays into base64 encoded strings"
+  [bs]
   (let [encoder (Base64/getEncoder)]
     (.encodeToString encoder bs)))

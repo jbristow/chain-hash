@@ -10,6 +10,36 @@ If you would like to know more, check out the [problem statement](doc/chain_hash
 * Install Java (Tested in Java 10)
 * Install [leiningen](https://leiningen.org/)
 
+### Encode
+
+```bash
+lein run encode -f <input-file> -o <encoded-file>
+```
+This creates a file filled with checksums at the location specified by `--output`
+
+The hash of the first block will be printed on stdout.
+
+### Decode
+```bash
+lein run decode -f <encoded-file> -o <decoded-file> -c <checksum>
+```
+Takes a checksum "encoded" file and cleans it piece by piece.  If anything has
+been modified, the chunk that contains the beginning of the modification will
+be marked invalid and the program will throw an error denoting the offending
+piece.
+
+## Alternate vision
+This is the original work I did before I realized I massively over-thought the assignment.
+
+I was distracted by the "streaming" words in the problem description, and so I
+made an approximation of a client/server model. In this model, there's no need
+to mix-in the binary data and create a duplicate large file. The hashes are
+saved off to the side in a seperate file, and the server just concats the data
+together when it is called upon to send the next chunk.
+
+This enables a bit of rewind, as the client can ask for an arbitrary piece as
+long as it has saved the hashes it saw along the way.
+
 ### Server operations
 #### Generate hash list
 ```bash

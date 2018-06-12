@@ -39,6 +39,10 @@
             (list 'throw (list 'missing-required-argument curr-opt))))
     body))
 
+(defn check-file-exists [filename]
+  (when-not (f/exists? filename)
+    ()))
+
 (defn -main
   "The main entry point for the cli"
   [& args]
@@ -74,9 +78,23 @@
              (throw (ex-info "Output file already exists." {:filename output}))
              (client/fetch file checksum chunk-size output-handler))))
 
+        (= "encode" arg)
+        (validate-has-option
+         options [:file :output]
+         (if-not (f/exists? (:output options))
+           (server/encode (:file options) (:output options) chunk-size)
+           (throw (ex-info "Output file already exists." {:filename (:output options)}))))
+
+        (= "decode" arg)
+        (validate-has-option
+         options [:file :output :checksum]
+         (if-not (f/exists? (:output options))
+           (client/decode (:file options) (:output options) (:checksum options) chunk-size)
+           (throw (ex-info "Output file already exists." {:filename (:output options)}))))
+
         :else
         (do (println "Problem validating command line arguments.")
-            (println "Possible options: count-pieces, gen-hashes, fetch-piece, fetch")
+            (println "Possible options: encode, decode, count-pieces, gen-hashes, fetch-piece, fetch")
             (println (:summary options))
             (exit 1)))
       (catch Exception e

@@ -1,6 +1,6 @@
 (ns chain-hash.server
-  (:require [chain-hash.file :as f]
-            [chain-hash.util :as util]
+  (:require [chain-hash.file :as f :refer [read-byte-array]]
+            [chain-hash.util :as u]
             [clojure.java.io :as io])
   (:import (java.nio.charset StandardCharsets)
            (java.nio.file Files))
@@ -8,7 +8,9 @@
 
 (def hash-extension ".shashes")
 
-(defn fetch-hash [filename piece]
+(defn fetch-hash
+  "Fetch hash n from the .shashes file for filename"
+  [filename piece]
   (let [file-path (f/path (str filename hash-extension))
         reader (if (Files/isReadable file-path)
                  (Files/newBufferedReader file-path StandardCharsets/UTF_8)
@@ -25,11 +27,15 @@
     (System/arraycopy b 0 new-array (count a) (count b))
     new-array))
 
-(defn count-pieces [filename size]
+(defn count-pieces
+  "return the number of pieces filename will be split into"
+  [filename size]
   (int (inc (/ (f/file-size filename) size))))
 
-(defn fetch-piece [file piece size]
-  (let [hashv (util/unhexify (fetch-hash file piece))
+(defn fetch-piece
+  "Return piece n to the client."
+  [file piece size]
+  (let [hashv (u/unhexify (fetch-hash file piece))
         bytecount (f/file-size file)
         data (f/read-byte-array (f/byte-channel file)
                                 (* size (dec piece))
@@ -60,9 +66,9 @@
    sequential hashes. This assumes the data is coming in from last to first and
    does NOT change the output order. The last hash is still in front."
   [[last-data & rest-data :as data]]
-  (let [final-hash (util/sha256 last-data)]
+  (let [final-hash (u/sha256 last-data)]
     (reductions (fn [prev-hash curr-data]
-                  (util/sha256 (concat-byte-array curr-data prev-hash)))
+                  (u/sha256 (concat-byte-array curr-data prev-hash)))
                 final-hash rest-data)))
 
 (defn save-hashes-to-file
@@ -70,11 +76,37 @@
   [hashes filename]
   (with-open [wrtr (io/writer (str filename hash-extension))]
     (doseq [h hashes]
-      (.write wrtr (str (util/hexify h 64) "\n")))))
+      (.write wrtr (str (u/hexify h 64) "\n")))))
 
-(defn generate-hashes-for [file size]
+(defn merge-file
+  "merge hashes with original data"
+  [hashes infile outfile size]
+  (let [reader (f/byte-channel infile)
+        total-size (f/file-size infile)]
+    (with-open [wrtr (f/output-stream-appender outfile)]
+      (doseq [[i h] (map-indexed vector (concat (rest hashes) [(byte-array 0)]))]
+        (let [startpos (* i size)
+              readsize (min size (- total-size (* i size)))
+              indata (read-byte-array reader startpos readsize)]
+          (.write wrtr indata)
+          (.write wrtr h))))
+    (println (u/hexify (first hashes)))))
+
+(defn generate-hashes-for
+  "Take a file (infile), generate the hashes, and then save them to a .shashes file"
+  [file size]
   (-> file
       (data-chunks-back-to-front size)
       hash-sequence
       reverse
       (save-hashes-to-file file)))
+
+(defn encode
+  "Takes a file (infile) and generates the hashes before stitching a new file
+   (outfile) back together, with the hashes included as binary in the new file."
+  [infile outfile size]
+  (-> infile
+      (data-chunks-back-to-front size)
+      hash-sequence
+      reverse
+      (merge-file infile outfile size)))

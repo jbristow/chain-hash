@@ -37,6 +37,12 @@
     (.read channel bbuff)
     (.array bbuff)))
 
+(defn output-stream-appender
+  "Get an OutputStream set for append/create."
+  [filename]
+  (Files/newOutputStream (path filename)
+                         (into-array OpenOption [StandardOpenOption/CREATE StandardOpenOption/APPEND])))
+
 (defn append-to [filename data]
   (with-open [wrtr (Files/newOutputStream (path filename) (into-array OpenOption [StandardOpenOption/CREATE StandardOpenOption/APPEND]))]
     (.write wrtr data)))

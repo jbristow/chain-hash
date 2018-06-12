@@ -54,3 +54,30 @@
   "Default file-handler that just appends data to a given file."
   [filename]
   (fn [data] (f/append-to filename data)))
+
+(defn decode [infile outfile i-checksum size]
+  (let [channel (f/byte-channel infile)
+        total-size (f/file-size infile)
+        read-chunk (+ 32 size)]
+    (with-open [wrtr (f/output-stream-appender outfile)]
+      (loop [n 0
+             curr-checksum i-checksum]
+        (let [curr-piece (f/read-byte-array channel (* n read-chunk) (min read-chunk (- total-size (* n read-chunk))))]
+          (cond
+            (empty? curr-piece)
+            (println "finished")
+
+            (piece-valid? curr-piece curr-checksum)
+            (do (println "piece" n "valid." "size" (count curr-piece))
+                (if (= (count curr-piece) read-chunk)
+                  (let [{h :hash d :data} (un-merge-data curr-piece size)]
+                    (.write wrtr d)
+                    (recur (inc n) (util/hexify h)))
+                  (.write wrtr curr-piece)))
+
+            :else
+            (throw (ex-info "Checksum error" {:piece n
+                                              :invalid-checksum curr-checksum
+                                              :actual (util/hexify
+                                                       (util/sha256 curr-piece))
+                                              :data (util/hexify curr-piece)}))))))))

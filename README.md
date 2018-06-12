@@ -34,7 +34,7 @@ This is the original work I did before I realized I massively over-thought the a
 I was distracted by the "streaming" words in the problem description, and so I
 made an approximation of a client/server model. In this model, there's no need
 to mix-in the binary data and create a duplicate large file. The hashes are
-saved off to the side in a seperate file, and the server just concats the data
+saved off to the side in a separate file, and the server just concats the data
 together when it is called upon to send the next chunk.
 
 This enables a bit of rewind, as the client can ask for an arbitrary piece as

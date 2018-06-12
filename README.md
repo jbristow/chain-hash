@@ -77,10 +77,6 @@ lein run fetch -f <filename> -c <first-hash> -o <output-filename>
 Same as above, but instead of throwing away the data, it appends the data to
 the given output file.
 
-> WARNING: This process doesn't check for file existence. Unless Jon removes
-> this message, assume that using an existing file as the output target will
-> ADD all of the data to the end of that file.
-
 #### Fetch a specific piece.
 
 ```bash

@@ -1,4 +1,6 @@
 # chain-hash
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjbristow%2Fchain-hash.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjbristow%2Fchain-hash?ref=badge_shield)
+
 
 Simulates a data stream with checksums that apply to each item in the stream.
 
@@ -100,3 +102,7 @@ lein test
 * Future enhancements would add better error checking and filepath
   obfuscation/checking to avoid arbitrary file loading.
 * This would probably be more handy if there were an actual web service sending these files.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjbristow%2Fchain-hash.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjbristow%2Fchain-hash?ref=badge_large)
